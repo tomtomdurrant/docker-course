@@ -1,0 +1,256 @@
+{
+  "options": [
+    {
+      "enabled": false,
+      "definition": { "id": "5d58cc01-7c75-450c-be18-a388ddb129ec" },
+      "inputs": {
+        "branchFilters": "[\"+refs/heads/*\"]",
+        "additionalFields": "{}"
+      }
+    },
+    {
+      "enabled": false,
+      "definition": { "id": "a9db38f9-9fdc-478c-b0f9-464221e58316" },
+      "inputs": {
+        "workItemType": "Bug",
+        "assignToRequestor": "true",
+        "additionalFields": "{}"
+      }
+    }
+  ],
+  "variables": {
+    "system.debug": {
+      "value": "false",
+      "allowOverride": true
+    }
+  },
+  "retentionRules": [
+    {
+      "branches": [ "+refs/heads/*" ],
+      "artifacts": [],
+      "artifactTypesToDelete": [ "FilePath", "SymbolStore" ],
+      "daysToKeep": 10,
+      "minimumToKeep": 1,
+      "deleteBuildRecord": true,
+      "deleteTestResults": true
+    }
+  ],
+  "properties": {},
+  "tags": [],
+  "_links": {
+    "self": { "href": "https://dev.azure.com/module6-demo/4e1cdb00-4726-48c0-bd20-4f62a9744675/_apis/build/Definitions/5?revision=2" },
+    "web": { "href": "https://dev.azure.com/module6-demo/4e1cdb00-4726-48c0-bd20-4f62a9744675/_build/definition?definitionId=5" },
+    "editor": { "href": "https://dev.azure.com/module6-demo/4e1cdb00-4726-48c0-bd20-4f62a9744675/_build/designer?id=5&_a=edit-build-definition" },
+    "badge": { "href": "https://dev.azure.com/module6-demo/4e1cdb00-4726-48c0-bd20-4f62a9744675/_apis/build/status/5" }
+  },
+  "jobAuthorizationScope": 1,
+  "jobTimeoutInMinutes": 60,
+  "jobCancelTimeoutInMinutes": 5,
+  "process": {
+    "phases": [
+      {
+        "steps": [
+          {
+            "environment": {},
+            "enabled": true,
+            "continueOnError": false,
+            "alwaysRun": false,
+            "displayName": "Build and Push WebAPI Image",
+            "timeoutInMinutes": 0,
+            "condition": "succeeded()",
+            "task": {
+              "id": "e28912f1-0114-4464-802a-a3a35437fd16",
+              "versionSpec": "2.*",
+              "definitionType": "task"
+            },
+            "inputs": {
+              "containerRegistry": "",
+              "repository": "demo-webapi",
+              "command": "buildAndPush",
+              "Dockerfile": "mywebapi/Dockerfile",
+              "buildContext": "mywebapi",
+              "tags": "$(Build.BuildId)",
+              "arguments": ""
+            }
+          },
+          {
+            "environment": {},
+            "enabled": true,
+            "continueOnError": false,
+            "alwaysRun": false,
+            "displayName": "Build and Push WebApp Image",
+            "timeoutInMinutes": 0,
+            "condition": "succeeded()",
+            "task": {
+              "id": "e28912f1-0114-4464-802a-a3a35437fd16",
+              "versionSpec": "2.*",
+              "definitionType": "task"
+            },
+            "inputs": {
+              "containerRegistry": "",
+              "repository": "demo-webapp",
+              "command": "buildAndPush",
+              "Dockerfile": "mywebapi/Dockerfile",
+              "buildContext": "mywebapi",
+              "tags": "$(Build.BuildId)",
+              "arguments": ""
+            }
+          },
+          {
+            "environment": {},
+            "enabled": true,
+            "continueOnError": false,
+            "alwaysRun": false,
+            "displayName": "Replace build number in backend-webapi.yaml file  copy",
+            "timeoutInMinutes": 0,
+            "condition": "succeeded()",
+            "task": {
+              "id": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
+              "versionSpec": "2.*",
+              "definitionType": "task"
+            },
+            "inputs": {
+
+              "script": "powershell -Command \"(gc backend-webapi.yaml) -replace 'BuildNumber', '$(Build.BuildId)' | Out-File -encoding ASCII backend-webapi.yaml\"",
+              "workingDirectory": "",
+              "failOnStderr": "false"
+            }
+          },
+          {
+            "environment": {},
+            "enabled": true,
+            "continueOnError": false,
+            "alwaysRun": false,
+            "displayName": "Replace build number in frontend-webapp.yaml file ",
+            "timeoutInMinutes": 0,
+            "condition": "succeeded()",
+            "task": {
+              "id": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
+              "versionSpec": "2.*",
+              "definitionType": "task"
+            },
+            "inputs": {
+              "script": "powershell -Command \"(gc frontend-webapp.yaml) -replace 'BuildNumber', '$(Build.BuildId)' | Out-File -encoding ASCII frontend-webapp.yaml\"",
+              "workingDirectory": "",
+              "failOnStderr": "false"
+            }
+          },
+          {
+            "environment": {},
+            "enabled": true,
+            "continueOnError": false,
+            "alwaysRun": false,
+            "displayName": "Publish Artifact: frontend-webapp.yaml ",
+            "timeoutInMinutes": 0,
+            "condition": "succeeded()",
+            "task": {
+              "id": "2ff763a7-ce83-4e1f-bc89-0ae63477cebe",
+              "versionSpec": "1.*",
+              "definitionType": "task"
+            },
+            "inputs": {
+              "PathtoPublish": "frontend-webapp.yaml",
+              "ArtifactName": "frontend-webapp ",
+              "ArtifactType": "Container",
+              "TargetPath": "",
+              "Parallel": "false",
+              "ParallelCount": "8"
+            }
+          },
+          {
+            "environment": {},
+            "enabled": true,
+            "continueOnError": false,
+            "alwaysRun": false,
+            "displayName": "Publish Artifact: backend-webapi.yaml",
+            "timeoutInMinutes": 0,
+            "condition": "succeeded()",
+            "task": {
+              "id": "2ff763a7-ce83-4e1f-bc89-0ae63477cebe",
+              "versionSpec": "1.*",
+              "definitionType": "task"
+            },
+            "inputs": {
+              "PathtoPublish": "backend-webapi.yaml",
+              "ArtifactName": "backend-webapi",
+              "ArtifactType": "Container",
+              "TargetPath": "",
+              "Parallel": "false",
+              "ParallelCount": "8"
+            }
+          }
+        ],
+        "name": "Agent job 1",
+        "refName": "Job_1",
+        "condition": "succeeded()",
+        "target": {
+          "executionOptions": { "type": 0 },
+          "allowScriptsAuthAccessOption": false,
+          "type": 1
+        },
+        "jobAuthorizationScope": 1
+      }
+    ],
+    "type": 1
+  },
+  "repository": {
+    "properties": {
+      "labelSources": "0",
+      "labelSourcesFormat": "$(build.buildNumber)",
+      "reportBuildStatus": "true",
+      "fetchDepth": "0",
+      "cleanOptions": "0",
+      "gitLfsSupport": "false",
+      "skipSyncSource": "false",
+      "checkoutNestedSubmodules": "false"
+    },
+    "id": "70aa5e43-c881-4297-99c0-e4d468ede4c4",
+    "type": "TfsGit",
+    "name": "FirstProject",
+    "url": "https://module6-demo@dev.azure.com/module6-demo/FirstProject/_git/FirstProject",
+    "defaultBranch": "refs/heads/master",
+    "clean": null,
+    "checkoutSubmodules": false
+  },
+  "processParameters": {},
+  "quality": 1,
+  "authoredBy": {
+    "displayName": "Kendall Roden",
+    "url": "https://app.vssps.visualstudio.com/A481faf42-0861-4804-a924-d2f2833ed428/_apis/Identities/084f650f-ecde-4188-94f6-95d3d25300b7",
+    "_links": { "avatar": { "href": "https://dev.azure.com/module6-demo/_apis/GraphProfile/MemberAvatars/aad.N2YxYzBlYmMtM2JhYi03YjllLWI0MmItYTY5MGJjYmYyYjk5" } },
+    "id": "084f650f-ecde-4188-94f6-95d3d25300b7",
+    "uniqueName": "keroden@microsoft.com",
+    "imageUrl": "https://dev.azure.com/module6-demo/_apis/GraphProfile/MemberAvatars/aad.N2YxYzBlYmMtM2JhYi03YjllLWI0MmItYTY5MGJjYmYyYjk5",
+    "descriptor": "aad.N2YxYzBlYmMtM2JhYi03YjllLWI0MmItYTY5MGJjYmYyYjk5"
+  },
+  "drafts": [],
+  "queue": {
+    "_links": { "self": { "href": "https://dev.azure.com/module6-demo/_apis/build/Queues/14" } },
+    "id": 14,
+    "name": "Hosted Ubuntu 1604",
+    "url": "https://dev.azure.com/module6-demo/_apis/build/Queues/14",
+    "pool": {
+      "id": 6,
+      "name": "Hosted Ubuntu 1604",
+      "isHosted": true
+    }
+  },
+  "id": 5,
+  "name": "Web Apps on Linux-CI",
+  "url": "https://dev.azure.com/module6-demo/4e1cdb00-4726-48c0-bd20-4f62a9744675/_apis/build/Definitions/5?revision=2",
+  "uri": "vstfs:///Build/Definition/5",
+  "path": "\\",
+  "type": 2,
+  "queueStatus": 0,
+  "revision": 2,
+  "createdDate": "2019-05-21T17:46:57.530Z",
+  "project": {
+    "id": "4e1cdb00-4726-48c0-bd20-4f62a9744675",
+    "name": "FirstProject",
+    "url": "https://dev.azure.com/module6-demo/_apis/projects/4e1cdb00-4726-48c0-bd20-4f62a9744675",
+    "state": 1,
+    "revision": 20,
+    "visibility": 0,
+    "lastUpdateTime": "2019-05-21T17:42:22.860Z"
+  }
+}

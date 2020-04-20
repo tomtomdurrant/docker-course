@@ -1,0 +1,1 @@
+bash -c "sed -i 's/BuildNumber/$(Build.BuildId)/g' backend-webapi.yaml"
